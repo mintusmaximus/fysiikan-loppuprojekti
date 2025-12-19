@@ -7,16 +7,12 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
-df = pd.read_csv("./projectData/Location.csv")
+dfLoc = pd.read_csv("./projectData/Location.csv")
+dfAccel = pd.read_csv("./projectData/Linear Acceleration.csv")
 
-st.title("Accuracy over time")
-st.line_chart(
-    df[df["Horizontal Accuracy (m)"] < 50],
-    x="Time (s)",
-    y="Horizontal Accuracy (m)",
-    x_label="Time (s)",
-    y_label="Horizontal Accuracy (m)",
-)
+
+# "Time (s)","Linear Acceleration x (m/s^2)","Linear Acceleration y (m/s^2)","Linear Acceleration z (m/s^2)"
+# "Time (s)","Latitude (°)","Longitude (°)","Height (m)","Velocity (m/s)","Direction (°)","Horizontal Accuracy (m)","Vertical Accuracy (m)"
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -30,31 +26,26 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-# lasketaan matka
-df["Distance_calc"] = np.zeros(len(df))
-for i in range(len(df) - 1):
-    lon1 = df["Longitude (°)"][i]
-    lon2 = df["Longitude (°)"][i + 1]
-    lat1 = df["Latitude (°)"][i]
-    lat2 = df["Latitude (°)"][i + 1]
-    df.loc[i + 1, "Distance_calc"] = haversine(lon1, lat1, lon2, lat2)
-
-df["Total_distance"] = df["Distance_calc"].cumsum()
-
-fig, ax = plt.subplots(figsize=(12, 5))
-plt.plot(df["Time (s)"], df["Total_distance"])
-plt.ylabel("testing")
-plt.xlabel("testing rebuild")
-st.pyplot(fig)
+dfLoc["Distance_calc"] = np.zeros(len(dfLoc))
+for i in range(len(dfLoc) - 1):
+    lon1 = dfLoc["Longitude (°)"][i]
+    lon2 = dfLoc["Longitude (°)"][i + 1]
+    lat1 = dfLoc["Latitude (°)"][i]
+    lat2 = dfLoc["Latitude (°)"][i + 1]
+    dfLoc.loc[i + 1, "Distance_calc"] = haversine(lon1, lat1, lon2, lat2)
+dfLoc["Total_distance"] = dfLoc["Distance_calc"].cumsum()
 
 
-start_lat = df["Latitude (°)"].mean()  # lat keskiarvo
-start_long = df["Longitude (°)"].mean()  # lon keskiarvo
-my_map = folium.Map(
-    location=[start_lat, start_long], zoom_start=14
-)  # luodaan kartta keskiarvoista
+st.title("Fysiikan lopputyö")
+st.text("Kokonaismatka metreinä: " + str(dfLoc["Total_distance"].max() * 1000)[:5])
+st.text("Keskinopeus m/s: " + str(dfLoc["Velocity (m/s)"].mean())[:3])
+st.text("Keskinopeus km/h: " + str(dfLoc["Velocity (m/s)"].mean() * 3.6)[:3])
+
+start_lat = dfLoc["Latitude (°)"].mean()
+start_long = dfLoc["Longitude (°)"].mean()
+my_map = folium.Map(location=[start_lat, start_long], zoom_start=14)
 
 folium.PolyLine(
-    df[["Latitude (°)", "Longitude (°)"]], color="blue", weight=5, opacity=1
+    dfLoc[["Latitude (°)", "Longitude (°)"]], color="blue", weight=5, opacity=1
 ).add_to(my_map)
-st_map = st_folium(my_map, width=900, height=650)
+st_map = st_folium(my_map, width=900, height=500)
