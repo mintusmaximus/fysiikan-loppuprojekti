@@ -7,8 +7,12 @@ import streamlit as st
 from scipy.signal import butter, filtfilt
 from streamlit_folium import st_folium
 
-dfLoc = pd.read_csv("./projectData/Location.csv")
-dfAccel = pd.read_csv("./projectData/Linear Acceleration.csv")
+dfLoc = pd.read_csv(
+    "https://raw.githubusercontent.com/mintusmaximus/fysiikan-loppuprojekti/refs/heads/master/projectData/Location.csv"
+)
+dfAccel = pd.read_csv(
+    "https://raw.githubusercontent.com/mintusmaximus/fysiikan-loppuprojekti/refs/heads/master/projectData/Linear%20Acceleration.csv"
+)
 
 
 def haversine(lon1, lat1, lon2, lat2):
